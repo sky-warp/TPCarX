@@ -17,7 +17,7 @@ namespace _Project.Scripts.Monsters.Factory
 				var r = newMonster.AddComponent<Rigidbody>();
 				r.useGravity = false;
 				newMonster.transform.position = transform.position;
-				var monsterBeh = newMonster.AddComponent<Monster>();
+				var monsterBeh = newMonster.AddComponent<DefaultMonster>();
 				monsterBeh.m_moveTarget = m_moveTarget;
 
 				m_lastSpawn = Time.time;

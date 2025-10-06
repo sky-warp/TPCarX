@@ -1,55 +1,65 @@
-﻿using System.Collections;
-using _Project.Scripts.Configs;
-using _Project.Scripts.Monsters;
+﻿using _Project.Scripts.Monsters;
+using _Project.Scripts.Projectiles.Interfaces;
+using UniRx;
 using UnityEngine;
 
 namespace _Project.Scripts.Projectiles
 {
-	public class GuidedProjectile : Projectile 
-	{
-		public GameObject m_target;
-		/*public float m_speed = 0.2f;
-		public int m_damage = 10;*/
+    public class GuidedProjectile : Projectile
+    {
+        void OnTriggerEnter(Collider other)
+        {
+            if (other.TryGetComponent(out Monster monster))
+            {
+                if (monster == null)
+                    return;
 
-		public GuidedProjectile(ProjectileConfig config) : base(config)
-		{
-		}
+                //Some controller?
+                monster.m_maxHP -= Damage;
+                
+                if (monster.m_maxHP <= 0)
+                {
+                    Destroy(monster.gameObject);
+                }
+            }
+        }
 
-		void Update()
-		{
-			if (m_target == null)
-			{
-				Destroy(gameObject);
-				return;
-			}
+        public override void MoveTowardsMonster(ITargetable target)
+        {
+            Vector3 direction = Vector3.zero;
 
-			var translation = m_target.transform.position - transform.position;
-			if (translation.magnitude > Speed)
-			{
-				translation = translation.normalized * Speed;
-			}
+            Observable
+                .EveryUpdate()
+                .Where(_ => this != null)
+                .Subscribe(_ =>
+                {
+                    var lastTargetPos = direction;
 
-			transform.Translate(translation);
-		}
+                    if ((MonoBehaviour)target != null && target is MonoBehaviour targetMono)
+                    {
+                        direction.x = targetMono.transform.position.x;
+                        direction.y = targetMono.transform.position.y;
+                        direction.z = targetMono.transform.position.z;
 
-		void OnTriggerEnter(Collider other)
-		{
-			var monster = other.gameObject.GetComponent<Monster>();
-			if (monster == null)
-				return;
+                        SetDestination(direction);
 
-			monster.m_maxHP -= Damage;
-			if (monster.m_maxHP <= 0)
-			{
-				Destroy(monster.gameObject);
-			}
+                        transform.position = Vector3.MoveTowards(transform.position, direction,
+                            Speed * Time.deltaTime);
 
-			Destroy(gameObject);
-		}
+                        CheckDestinationAchivedStatus();
+                    }
 
-		public override IEnumerator MoveTowardsTarget()
-		{
-			throw new System.NotImplementedException();
-		}
-	}
+                    if ((MonoBehaviour)target == null)
+                    {
+                        SetDestination(lastTargetPos);
+
+                        transform.position =
+                            Vector3.MoveTowards(transform.position, lastTargetPos,
+                                Speed * Time.deltaTime);
+
+                        CheckDestinationAchivedStatus();
+                    }
+                });
+        }
+    }
 }

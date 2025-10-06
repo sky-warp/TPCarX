@@ -18,7 +18,7 @@ namespace _Project.Scripts.Projectiles
         {
             //Monster model to decrease monsters health?
             //Some damage controller?
-            if (other.gameObject.TryGetComponent<Monster>(out Monster monster))
+            if (other.gameObject.TryGetComponent<DefaultMonster>(out DefaultMonster monster))
             {
                 monster.m_maxHP -= _damage;
 
