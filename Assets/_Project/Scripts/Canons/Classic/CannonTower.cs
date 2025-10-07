@@ -4,6 +4,11 @@ namespace _Project.Scripts.Canons.Classic
 {
     public class CannonTower : Canon
     {
+        private void Awake()
+        {
+            StartCoroutine(DetectMonster());
+        }
+
         public override void Shoot()
         {
             throw new System.NotImplementedException();

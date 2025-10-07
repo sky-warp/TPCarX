@@ -1,18 +1,13 @@
 ﻿using _Project.Scripts.Monsters;
+using _Project.Scripts.Projectiles.Interfaces;
+using UniRx;
 using UnityEngine;
 
 namespace _Project.Scripts.Projectiles
 {
-    public class CannonProjectile : MonoBehaviour
+    public class CannonProjectile : Projectile
     {
-        [SerializeField] private float _speed = 0.2f;
         [SerializeField] private int _damage = 10;
-
-        void Update()
-        {
-            var translation = transform.forward * _speed;
-            transform.Translate(translation);
-        }
 
         void OnTriggerEnter(Collider other)
         {
@@ -27,6 +22,12 @@ namespace _Project.Scripts.Projectiles
                     Destroy(monster.gameObject);
                 }
             }
+        }
+
+        public override IReadOnlyReactiveProperty<Vector3> DirectionTowardsTarget { get; }
+
+        public override void CalculateDirectionTowardsTarget(ITargetable target)
+        {
         }
     }
 }

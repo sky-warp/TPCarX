@@ -1,12 +1,19 @@
-﻿using _Project.Scripts.Monsters;
+﻿using System;
+using _Project.Scripts.Monsters;
 using _Project.Scripts.Projectiles.Interfaces;
 using UniRx;
 using UnityEngine;
 
 namespace _Project.Scripts.Projectiles
 {
-    public class GuidedProjectile : Projectile
+    public class GuidedProjectile : Projectile, IDisposable
     {
+        public override IReadOnlyReactiveProperty<Vector3> DirectionTowardsTarget => _directionTowardsTarget;
+
+        private ReactiveProperty<Vector3> _directionTowardsTarget = new();
+
+        private CompositeDisposable _disposables = new();
+
         void OnTriggerEnter(Collider other)
         {
             if (other.TryGetComponent(out Monster monster))
@@ -16,7 +23,7 @@ namespace _Project.Scripts.Projectiles
 
                 //Some controller?
                 monster.m_maxHP -= Damage;
-                
+
                 if (monster.m_maxHP <= 0)
                 {
                     Destroy(monster.gameObject);
@@ -24,7 +31,7 @@ namespace _Project.Scripts.Projectiles
             }
         }
 
-        public override void MoveTowardsMonster(ITargetable target)
+        public override void CalculateDirectionTowardsTarget(ITargetable target)
         {
             Vector3 direction = Vector3.zero;
 
@@ -33,33 +40,27 @@ namespace _Project.Scripts.Projectiles
                 .Where(_ => this != null)
                 .Subscribe(_ =>
                 {
-                    var lastTargetPos = direction;
-
                     if ((MonoBehaviour)target != null && target is MonoBehaviour targetMono)
                     {
                         direction.x = targetMono.transform.position.x;
                         direction.y = targetMono.transform.position.y;
                         direction.z = targetMono.transform.position.z;
 
-                        SetDestination(direction);
-
-                        transform.position = Vector3.MoveTowards(transform.position, direction,
-                            Speed * Time.deltaTime);
-
-                        CheckDestinationAchivedStatus();
+                        _directionTowardsTarget.Value = direction;
                     }
 
                     if ((MonoBehaviour)target == null)
                     {
-                        SetDestination(lastTargetPos);
-
-                        transform.position =
-                            Vector3.MoveTowards(transform.position, lastTargetPos,
-                                Speed * Time.deltaTime);
-
-                        CheckDestinationAchivedStatus();
+                        //Improve?
+                        Destroy(gameObject);
                     }
                 });
+        }
+
+        public void Dispose()
+        {
+            _directionTowardsTarget?.Dispose();
+            _disposables?.Dispose();
         }
     }
 }

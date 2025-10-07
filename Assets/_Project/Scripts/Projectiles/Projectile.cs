@@ -7,6 +7,7 @@ namespace _Project.Scripts.Projectiles
 {
     public abstract class Projectile : MonoBehaviour
     {
+        public abstract IReadOnlyReactiveProperty<Vector3> DirectionTowardsTarget { get; }
         public float Speed { get; private set; }
         public int Damage { get; private set; }
         public Vector3 Destination { get; private set; }
@@ -17,22 +18,6 @@ namespace _Project.Scripts.Projectiles
             Damage = config.Damage;
         }
 
-        public abstract void MoveTowardsMonster(ITargetable target);
-
-        public void SetDestination(Vector3 destination)
-        {
-            Destination = destination;
-        }
-
-        public void CheckDestinationAchivedStatus()
-        {
-            if(transform.position == Destination)
-                Destroy(this);
-            
-            /*Observable
-                .EveryUpdate()
-                .Where(_ => this != null && transform.position == Destination)
-                .Subscribe(_ => Destroy(this));*/
-        }
+        public abstract void CalculateDirectionTowardsTarget(ITargetable target);
     }
 }
